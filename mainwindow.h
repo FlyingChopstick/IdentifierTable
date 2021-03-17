@@ -24,12 +24,15 @@ private slots:
 
     void on_b_statReset_clicked();
 
+    void on_tb_identifierQuery_textChanged(const QString &arg1);
+
 private:
+    void HighLightIdentifierSearch(bool highlight, bool isFound = false);
     void ToggleControls(bool enable);
     void ClearBuffers();
-    void ReadFile(QString *filename);
+    bool ReadFile(QString *filename);
     void UpdateIdentifierDisplay();
-    void Query(QString *identifier);
+    bool Query(QString *identifier);
     void UpdateStats();
     void ResetStats();
     void DisplayStats();
@@ -41,11 +44,11 @@ private:
     HashTable _hashTable;
 
     unsigned int _searchCount;
-    float _ht_hashMean;
+    //float _ht_hashMean;
     float _ht_valMean;
-    float _ht_hashSum;
+    //float _ht_hashSum;
     float _ht_valSum;
-    unsigned int _ht_lastHashComp;
+    //unsigned int _ht_lastHashComp;
     unsigned int _ht_lastValComp;
     float _sl_mean;
     float _sl_sum;

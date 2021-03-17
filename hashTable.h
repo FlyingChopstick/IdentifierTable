@@ -13,26 +13,26 @@ public:
                 _size = 0;
                 resetStats();
 
-                _keys = new unsigned int[_capacity];
+                //_keys = new unsigned int[_capacity];
                 _values = new std::string[_capacity];
 
-                for (unsigned int i = 0; i < TABLE_CAPACITY; i++)
-                {
-                        _keys[i] = KEY_EMPTY;
-                }
+//                for (unsigned int i = 0; i < TABLE_CAPACITY; i++)
+//                {
+//                        _keys[i] = KEY_EMPTY;
+//                }
         }
         HashTable(const HashTable& other)
         {
-                this->_keyCompares = other._keyCompares;
+                //this->_keyCompares = other._keyCompares;
                 this->_valCompares = other._valCompares;
                 this->_capacity = other._capacity;
                 this->_size = other._size;
-                this->_keys = other._keys;
+                //this->_keys = other._keys;
                 this->_values = other._values;
         }
         ~HashTable()
         {
-                delete[] _keys;
+                //delete[] _keys;
                 delete[] _values;
         }
 
@@ -40,22 +40,14 @@ public:
         {
                 unsigned int hash = hashString(lowerString(element));
                 unsigned int index = hash - HASH_MIN;
-
-                _keyCompares++;
-                if (_keys[index] != KEY_EMPTY)
+                _valCompares++;
+                if (_values[index] != *element)
                 {
-                        _valCompares++;
-                        if (_values[index] != *element)
-                        {
-                                hash = rehash(hash);
-                                index = hash - HASH_MIN;
-                        }
+                        hash = rehash(hash);
+                        index = hash - HASH_MIN;
                 }
-
-                _keys[index] = hash;
                 _values[index] = *element;
                 _size++;
-
 
                 return hash;
         }
@@ -66,18 +58,18 @@ public:
 
                 while (index < HASH_MAX-HASH_MIN)
                 {
-                        _keyCompares++;
-                        if (_keys[index] == KEY_EMPTY)
-                        {
-                                index++;
-                                continue;
-                        }
+//                        _keyCompares++;
+//                        if (_keys[index] == KEY_EMPTY)
+//                        {
+//                                index++;
+//                                continue;
+//                        }
 
                         _valCompares++;
                         if (_values[index] == *element)
                         {
-                                _keys[index] = KEY_EMPTY;
-                                _values[index] = "";
+                                //_keys[index] = KEY_EMPTY;
+                                _values[index] = EMPTY_STRING;
                                 _size--;
                                 return;
                         }
@@ -89,41 +81,39 @@ public:
         {
                 _size = 0;
 
-                delete[] _keys;
+                //delete[] _keys;
                 delete[] _values;
 
-                _keys = new unsigned int[_capacity];
+                //_keys = new unsigned int[_capacity];
                 _values = new std::string[_capacity];
         }
         bool contains(std::string* element)
         {
                 unsigned int hash = hashString(element);
                 unsigned int index = hash - HASH_MIN;
-
-                while (index < HASH_MAX)
+                unsigned int i = 1;
+                while (hash <= HASH_MAX && hash >= HASH_MIN)
                 {
-                        _keyCompares++;
-                        if (_keys[index] != KEY_EMPTY)
-                        {
-                                _valCompares++;
-                                if (_values[index] == *element)
-                                {
-                                        return true;
-                                }
-                                index++;
-                        }
-                        else
-                        {
-                                return false;
-                        }
+                    _valCompares++;
+                    if (_values[index] == *element)
+                    {
+                            return true;
+                    }
+                    hash = (hash * i) % PRIME;
+                    index = hash - HASH_MIN;
+                    i++;
                 }
                 return false;
         }
 
         unsigned int size() { return _size; }
 
-        void resetStats() { _keyCompares = 0; _valCompares = 0; }
-        unsigned int getKeyCompares() { return _keyCompares; }
+        void resetStats()
+        {
+            //_keyCompares = 0;
+            _valCompares = 0;
+        }
+        //unsigned int getKeyCompares() { return _keyCompares; }
         unsigned int getValCompares() { return _valCompares; }
 
         static unsigned int hashString(std::string* str)
@@ -133,20 +123,9 @@ public:
                 int second = (int)str->at(str->length() / 3);
                 int third = (int)str->at(str->length() - 1);
 
-                unsigned int hash_ = first + second + third;
+                unsigned int hash = first + second + third;
 
-                return hash_;
-
-                //int b = 378551;
-                //int a = 63689;
-                //unsigned int hash = 0;
-                //for (std::size_t i = 0; i < str->length(); i++)
-                //{
-                //	hash = hash * a + str->at(i);
-                //	a *= b;
-                //}
-                ////set to always positive by bit masking
-                //return (hash & 0x7FFFFFFF);
+                return hash;
         }
 
 private:
@@ -167,27 +146,14 @@ private:
                 while (hash < HASH_MAX)
                 {
                         hash = (hash * i) % PRIME;
-                        if (_keys[hash-HASH_MIN] == KEY_EMPTY)
+                        _valCompares++;
+                        if (_values[hash-HASH_MIN] == EMPTY_STRING)
                         {
                                 return hash;
                         }
                         i++;
                 }
                 throw;
-
-                //while (++hash < HASH_MAX)
-                //{
-                //	int index = hash - HASH_MIN;
-                //	auto t = _keys[index];
-
-                //	_keyCompares++;
-                //	if (_keys[index] == KEY_EMPTY)
-                //	{
-                //		return hash;
-                //	}
-                //	//hash++;
-                //}
-                //throw;
         }
 
 
@@ -197,16 +163,16 @@ private:
         const unsigned int HASH_MAX = 366;
         //Greatest prime number <HASH_MAX
         const unsigned int PRIME = 359;
-        //This value is considered an empty cell
-        const unsigned int KEY_EMPTY = 400;
         //The capacity for _keys and _values
         const unsigned int TABLE_CAPACITY = 256;
+        //Empty string
+        const std::string EMPTY_STRING = "";
 
-        unsigned int* _keys;
+        //unsigned int* _keys;
         std::string* _values;
         unsigned int _size;
         unsigned int _capacity;
 
-        unsigned int _keyCompares;
+        //unsigned int _keyCompares;
         unsigned int _valCompares;
 };

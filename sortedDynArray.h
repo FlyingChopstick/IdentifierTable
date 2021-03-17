@@ -2,11 +2,6 @@
 #define SORTEDDYNARRAY_H
 
 #endif // SORTEDDYNARRAY_H
-//list provides means to add, find and remove data
-//on addition it searches for the correct spot of the new item using binary search
-//when the item place is found, it shifts the array to the right and inserts new item
-// in the freed space
-//to delete item shift to the left is performed
 
 template <class T>
 class SortedList
