@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
     ToggleControls(true);
+
 }
 
 MainWindow::~MainWindow()
@@ -160,6 +161,7 @@ void MainWindow::DisplayStats()
     MainWindow::ui->l_searchCount->setText("Поиск проводлися "+ QString::number(_searchCount) +" раз");
 }
 
+
 //Button - search
 void MainWindow::on_b_search_clicked()
 {
@@ -246,5 +248,92 @@ void MainWindow::HighLightIdentifierSearch(bool highlight, bool isFound)
 void MainWindow::on_tb_identifierQuery_textChanged(const QString &arg1)
 {
     HighLightIdentifierSearch(false);
+}
+
+//Button - select source (lexemes)
+void MainWindow::on_b_selectFile_2_clicked()
+{
+    //Get filename from OpenFileDialog
+    QString filename = QFileDialog::getOpenFileName(this,
+        tr("Select source file"),
+        "E:\\QT\\Projects\\IdentifierTable\\input",
+        tr("Text files(*.txt)"));
+
+    auto res = ReadSourceLexemes(&filename);
+    //if file was read successfully
+    if (res != "")
+    {
+        //write the selected file name
+        MainWindow::ui->tb_selectedFile_2->append(QFileInfo(filename).fileName());
+
+        Analyse(res);
+        DisplayResults();
+    }
+    //if error occured
+    else
+    {
+        //Display error message
+        QMessageBox mb;
+        mb.setText("Ошибка при открытии файла.");
+        mb.setStandardButtons(QMessageBox::Ok);
+        mb.exec();
+    }
+}
+
+//Read source - lexemes
+std::string MainWindow::ReadSourceLexemes(QString *filename)
+{
+    std::string output;
+    //input file
+    QFile inputFile(*filename);
+    //if the file is opened
+    if (inputFile.open(QIODevice::ReadOnly))
+    {
+        QTextStream in(&inputFile);
+        //read the file
+        while (!in.atEnd())
+        {
+            //current line
+            QString qLine = in.readLine();
+            std::string line = qLine.toStdString();
+
+            MainWindow::ui->tb_source->append(qLine);
+            output+=line;
+        }
+        return output;
+    }
+    //if file could not be opened
+    else
+    {
+        return "";
+    }
+}
+
+void MainWindow::Analyse(std::string sourceString)
+{
+    _analyser.readInput(&sourceString);
+}
+
+void MainWindow::DisplayResults()
+{
+    auto lexemes = _analyser.getTypeNames();
+    auto values = _analyser.getLexemes();
+
+    for (unsigned int i = 0; i < lexemes.size(); i++ )
+    {
+        AddNewRow(QString::fromStdString(lexemes.at(i)),
+                  QString::fromStdString(values.at(i)));
+    }
+}
+
+void MainWindow::AddNewRow(QString lexeme, QString value)
+{
+    MainWindow::ui->table_lexemes->insertRow(MainWindow::ui->table_lexemes->rowCount());
+    MainWindow::ui->table_lexemes->setItem(MainWindow::ui->table_lexemes->rowCount()-1,
+                                           0,
+                                           new QTableWidgetItem(lexeme));
+    MainWindow::ui->table_lexemes->setItem(MainWindow::ui->table_lexemes->rowCount()-1,
+                                           1,
+                                           new QTableWidgetItem(value));
 }
 

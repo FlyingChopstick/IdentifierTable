@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "hashTable.h"
 #include "sortedDynArray.h"
+#include "analyser.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,6 +27,8 @@ private slots:
 
     void on_tb_identifierQuery_textChanged(const QString &arg1);
 
+    void on_b_selectFile_2_clicked();
+
 private:
     void HighLightIdentifierSearch(bool highlight, bool isFound = false);
     void ToggleControls(bool enable);
@@ -37,11 +40,17 @@ private:
     void ResetStats();
     void DisplayStats();
 
+    std::string ReadSourceLexemes(QString *filename);
+    void Analyse(std::string sourceString);
+    void AddNewRow(QString lexeme, QString value);
+    void DisplayResults();
+
     Ui::MainWindow *ui;
     std::string _filename;
     QVector<QString> _identifiers;
     SortedList<std::string> _sortedList;
     HashTable _hashTable;
+    Analyser _analyser;
 
     unsigned int _searchCount;
     //float _ht_hashMean;
