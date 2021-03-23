@@ -12,98 +12,93 @@ public:
                 _capacity = TABLE_CAPACITY;
                 _size = 0;
                 resetStats();
-
-                //_keys = new unsigned int[_capacity];
                 _values = new std::string[_capacity];
-
-//                for (unsigned int i = 0; i < TABLE_CAPACITY; i++)
-//                {
-//                        _keys[i] = KEY_EMPTY;
-//                }
         }
         HashTable(const HashTable& other)
         {
-                //this->_keyCompares = other._keyCompares;
                 this->_valCompares = other._valCompares;
                 this->_capacity = other._capacity;
                 this->_size = other._size;
-                //this->_keys = other._keys;
                 this->_values = other._values;
         }
         ~HashTable()
         {
-                //delete[] _keys;
                 delete[] _values;
         }
 
         unsigned int add(std::string* element)
         {
-                unsigned int hash = hashString(lowerString(element));
-                unsigned int index = hash - HASH_MIN;
-                _valCompares++;
-                if (_values[index] != *element)
-                {
-                        hash = rehash(hash);
-                        index = hash - HASH_MIN;
-                }
-                _values[index] = *element;
-                _size++;
+            //calculate hash
+            unsigned int hash = hashString(lowerString(element));
+            //get index from hash
+            unsigned int index = hash - HASH_MIN;
+            _valCompares++;
+            //if the slot is occupied
+            if (_values[index] != *element)
+            {
+                //rehash, retry
+                hash = rehash(hash);
+                index = hash - HASH_MIN;
+            }
+            //set the element in the slot
+            _values[index] = *element;
+            _size++;
 
-                return hash;
+            return hash;
         }
+
         void remove(std::string* element)
         {
-                unsigned int hash = hashString(element);
-                unsigned int index = hash - HASH_MIN;
+            //calculate hash
+            unsigned int hash = hashString(element);
+            //get index
+            unsigned int index = hash - HASH_MIN;
 
-                while (index < HASH_MAX-HASH_MIN)
+            //table bounds check
+            while (index < HASH_MAX-HASH_MIN)
+            {
+                _valCompares++;
+                //if the element is found
+                if (_values[index] == *element)
                 {
-//                        _keyCompares++;
-//                        if (_keys[index] == KEY_EMPTY)
-//                        {
-//                                index++;
-//                                continue;
-//                        }
-
-                        _valCompares++;
-                        if (_values[index] == *element)
-                        {
-                                //_keys[index] = KEY_EMPTY;
-                                _values[index] = EMPTY_STRING;
-                                _size--;
-                                return;
-                        }
-                        index++;
+                    //clear the slot
+                    _values[index] = EMPTY_STRING;
+                    _size--;
+                    return;
                 }
-                throw;
+                index++;
+            }
+            //if nothing found, throw
+            throw;
         }
+
         void clear()
         {
                 _size = 0;
-
-                //delete[] _keys;
                 delete[] _values;
-
-                //_keys = new unsigned int[_capacity];
                 _values = new std::string[_capacity];
         }
         bool contains(std::string* element)
         {
-                unsigned int hash = hashString(element);
-                unsigned int index = hash - HASH_MIN;
-                unsigned int i = 1;
-                while (hash <= HASH_MAX && hash >= HASH_MIN)
+            //get hash and index
+            unsigned int hash = hashString(element);
+            unsigned int index = hash - HASH_MIN;
+            unsigned int i = 1;
+            //bounds check
+            while (hash <= HASH_MAX && hash >= HASH_MIN)
+            {
+                _valCompares++;
+                //if element is found
+                if (_values[index] == *element)
                 {
-                    _valCompares++;
-                    if (_values[index] == *element)
-                    {
-                            return true;
-                    }
-                    hash = (hash * i) % PRIME;
-                    index = hash - HASH_MIN;
-                    i++;
+                    return true;
                 }
-                return false;
+                //else rehash
+                hash = (hash * i) % PRIME;
+                index = hash - HASH_MIN;
+                i++;
+            }
+            return false;
         }
 
         unsigned int size() { return _size; }
@@ -113,7 +108,6 @@ public:
             //_keyCompares = 0;
             _valCompares = 0;
         }
-        //unsigned int getKeyCompares() { return _keyCompares; }
         unsigned int getValCompares() { return _valCompares; }
 
         static unsigned int hashString(std::string* str)
@@ -129,6 +123,7 @@ public:
         }
 
 private:
+        //convert the string to lowercase (AAA->aaa)
         std::string* lowerString(std::string* line)
         {
                 for (int i = 0; i < line->length(); i++)
@@ -137,12 +132,11 @@ private:
                 }
                 return line;
         }
+
+        //recalculate the hash
         unsigned int rehash(unsigned int hash)
         {
                 int i = 1;
-
-                //(h(A)N*i) mod N`m
-
                 while (hash < HASH_MAX)
                 {
                         hash = (hash * i) % PRIME;

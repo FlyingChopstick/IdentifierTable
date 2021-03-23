@@ -20,23 +20,31 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//Button - open file
 void MainWindow::on_b_selectFile_clicked()
 {
+    //Get filename from OpenFileDialog
     QString filename = QFileDialog::getOpenFileName(this,
         tr("Select source file"),
         "E:\\QT\\Projects\\IdentifierTable\\input",
         tr("Text files(*.txt)"));
 
+
     ClearBuffers();
     bool fileIsRead = ReadFile(&filename);
 
+    //if file was read successfully
     if (fileIsRead)
     {
+        //write the selected file name
         MainWindow::ui->tb_selectedFile->append(QFileInfo(filename).fileName());
+        //update identifier list
         UpdateIdentifierDisplay();
     }
+    //if error occured
     else
     {
+        //Display error message
         QMessageBox mb;
         mb.setText("Ошибка при открытии файла.");
         mb.setStandardButtons(QMessageBox::Ok);
@@ -44,23 +52,30 @@ void MainWindow::on_b_selectFile_clicked()
     }
 }
 
+//Reads the provided file and fills the list and the hash table
 bool MainWindow::ReadFile(QString *filename)
 {
+    //input file
     QFile inputFile(*filename);
     //if the file is opened
     if (inputFile.open(QIODevice::ReadOnly))
     {
         QTextStream in(&inputFile);
+        //read the file
         while (!in.atEnd())
         {
+            //current line
             QString qLine = in.readLine();
             std::string line = qLine.toStdString();
 
+            //Добавление в структуры
             _sortedList.add(line);
             _hashTable.add(&line);
+
+            //Список идентификаторов - для отображения в окне
             _identifiers.append(qLine);
         }
-        ToggleControls(false);
+        //ToggleControls(false);
         return true;
     }
     //if file could not be opened
@@ -70,44 +85,55 @@ bool MainWindow::ReadFile(QString *filename)
     }
 }
 
+//Update the identifier list
 void MainWindow::UpdateIdentifierDisplay()
 {
+    //for each indentifier in list
     for (unsigned int i = 0; i < _identifiers.length(); i++ )
     {
         QString line = _identifiers[i];
+        //add the identifier in the list
         MainWindow::ui->tb_identifiers->append(line);
     }
 }
 
+//Search the structures for identfier
 bool MainWindow::Query(QString *identifier)
-{
+{    
     std::string ideStr = identifier->toStdString();
+    //clear structure statistics
     _hashTable.resetStats();
     _sortedList.resetStats();
 
     _searchCount++;
+    //query ht
     bool r_ht = _hashTable.contains(&ideStr);
+    //query sl
     bool r_sl = _sortedList.contains(ideStr);
 
+    //if found in both, return true
+    //maybe throw if found in only one?
     return r_ht && r_sl;
 }
 
+//Updates statistics
 void MainWindow::UpdateStats()
 {
-    //_ht_lastHashComp = _hashTable.getKeyCompares();
+    //get compare count from ht
     _ht_lastValComp = _hashTable.getValCompares();
-
+    //get compare count from sl
     _sl_lastValComp = _sortedList.getValCompares();
 
-    //_ht_hashSum+=_ht_lastHashComp;
+    //sum the compare values
     _ht_valSum+=_ht_lastValComp;
     _sl_sum+=_sl_lastValComp;
 
-    //_ht_hashMean = _ht_hashSum/_searchCount;
+    //calculate average
     _ht_valMean = _ht_valSum/_searchCount;
     _sl_mean = _sl_sum/_searchCount;
 }
 
+//Clear statistics
 void MainWindow::ResetStats()
 {
     _searchCount = 0;
@@ -119,6 +145,7 @@ void MainWindow::ResetStats()
     _sl_mean = 0.0f;
 }
 
+//Update statistics fields
 void MainWindow::DisplayStats()
 {
     MainWindow::ui->l_ht_valComp->setText("Сравнений: " + QString::number(_ht_lastValComp));
@@ -133,8 +160,10 @@ void MainWindow::DisplayStats()
     MainWindow::ui->l_searchCount->setText("Поиск проводлися "+ QString::number(_searchCount) +" раз");
 }
 
+//Button - search
 void MainWindow::on_b_search_clicked()
 {
+    //get identfier from text box
     QString identifier = MainWindow::ui->tb_identifierQuery->text();
     //empty string check
     if (identifier == "")
@@ -161,6 +190,7 @@ void MainWindow::on_b_search_clicked()
     DisplayStats();
 }
 
+//Clear form fields
 void MainWindow::ClearBuffers()
 {
     MainWindow::ui->tb_identifiers->clear();
@@ -168,12 +198,14 @@ void MainWindow::ClearBuffers()
     _identifiers.clear();
 }
 
+//Button - reset
 void MainWindow::on_b_statReset_clicked()
 {
     ResetStats();
     DisplayStats();
 }
 
+//Disable Search and Reset buttons, identifier search input
 void MainWindow::ToggleControls(bool disable)
 {
     MainWindow::ui->tb_identifierQuery->setDisabled(disable);
@@ -181,6 +213,7 @@ void MainWindow::ToggleControls(bool disable)
     MainWindow::ui->b_statReset->setDisabled(disable);
 }
 
+//Highlight the form fields
 void MainWindow::HighLightIdentifierSearch(bool highlight, bool isFound)
 {
     if (highlight)
@@ -209,6 +242,7 @@ void MainWindow::HighLightIdentifierSearch(bool highlight, bool isFound)
     }
 }
 
+//Reset identifier search field colour
 void MainWindow::on_tb_identifierQuery_textChanged(const QString &arg1)
 {
     HighLightIdentifierSearch(false);
